@@ -15,11 +15,12 @@ class TextChunker:
         chunk_size: int | None = None, 
         chunk_overlap: int | None = None
     ):
-        """Initialize chunker with size parameters.
+        """
+        Create a TextChunker configured with chunk size and overlap, using defaults from settings when arguments are None.
         
-        Args:
-            chunk_size: Maximum characters per chunk (default from settings)
-            chunk_overlap: Overlap between chunks for context continuity
+        Parameters:
+            chunk_size (int | None): Maximum number of characters per chunk; if None, uses settings.CHUNK_SIZE.
+            chunk_overlap (int | None): Number of characters to overlap between consecutive chunks; if None, uses settings.CHUNK_OVERLAP.
         """
         self.chunk_size = chunk_size or settings.CHUNK_SIZE
         self.chunk_overlap = chunk_overlap or settings.CHUNK_OVERLAP
@@ -32,13 +33,16 @@ class TextChunker:
         )
     
     def chunk_documents(self, documents: List[Document]) -> List[Document]:
-        """Split documents into chunks while preserving metadata.
+        """
+        Split each Document into smaller Document chunks and annotate each chunk's metadata with its position.
         
-        Args:
-            documents: List of Document objects to chunk
-            
+        Preserves the original Document.metadata for every chunk and adds two keys: "chunk_index" (zero-based index of the chunk within the source document) and "total_chunks" (total number of chunks produced from the source document).
+        
+        Parameters:
+            documents (List[Document]): Documents to split into chunks.
+        
         Returns:
-            List of chunked Document objects
+            List[Document]: Chunk Documents where each Document.page_content is a chunk of the original text and Document.metadata contains the original metadata plus "chunk_index" and "total_chunks".
         """
         chunks = []
         
@@ -60,14 +64,15 @@ class TextChunker:
         return chunks
     
     def chunk_text(self, text: str, metadata: dict | None = None) -> List[Document]:
-        """Chunk a raw text string.
+        """
+        Split a raw text string into Document chunks, attaching optional metadata to each chunk.
         
-        Args:
-            text: Raw text to chunk
-            metadata: Optional metadata to attach to chunks
-            
+        Parameters:
+            text (str): Text to split into chunks.
+            metadata (dict | None): Optional metadata to include on every returned Document; defaults to an empty dict.
+        
         Returns:
-            List of chunked Document objects
+            List[Document]: Documents representing the resulting chunks. Each Document preserves the provided metadata and includes `chunk_index` and `total_chunks` metadata keys.
         """
         doc = Document(page_content=text, metadata=metadata or {})
         return self.chunk_documents([doc])

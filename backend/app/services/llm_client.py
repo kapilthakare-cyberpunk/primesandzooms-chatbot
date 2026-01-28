@@ -10,20 +10,25 @@ class LLMClient:
     """Wrapper for OpenAI API calls."""
     
     def __init__(self):
-        """Initialize OpenAI client."""
+        """
+        Initialize the LLM client and load model configuration from settings.
+        
+        Creates an AsyncOpenAI client using the configured API key and stores the selected model name, temperature, and max token limit on the instance as `self.client`, `self.model`, `self.temperature`, and `self.max_tokens`.
+        """
         self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
         self.model = settings.LLM_MODEL
         self.temperature = settings.LLM_TEMPERATURE
         self.max_tokens = settings.LLM_MAX_TOKENS
     
     async def chat(self, messages: List[Dict[str, str]]) -> str:
-        """Send a chat completion request.
+        """
+        Request a chat completion from the configured model.
         
-        Args:
-            messages: List of message dicts with 'role' and 'content'
-            
+        Parameters:
+            messages (List[Dict[str, str]]): Sequence of message objects, each with keys 'role' (e.g., 'user'|'assistant'|'system') and 'content' (the message text).
+        
         Returns:
-            The assistant's response text
+            str: The assistant's response text from the first choice.
         """
         response = await self.client.chat.completions.create(
             model=self.model,
@@ -35,13 +40,14 @@ class LLMClient:
         return response.choices[0].message.content
     
     async def chat_stream(self, messages: List[Dict[str, str]]) -> AsyncGenerator[str, None]:
-        """Send a streaming chat completion request.
+        """
+        Stream assistant token fragments for a chat conversation.
         
-        Args:
-            messages: List of message dicts with 'role' and 'content'
-            
+        Parameters:
+            messages (List[Dict[str, str]]): Conversation messages; each dict must include 'role' and 'content'.
+        
         Yields:
-            Token strings as they arrive
+            str: Token fragment produced by the assistant as it is streamed.
         """
         stream = await self.client.chat.completions.create(
             model=self.model,
@@ -56,13 +62,14 @@ class LLMClient:
                 yield chunk.choices[0].delta.content
     
     async def embed(self, text: str) -> List[float]:
-        """Generate embedding for a single text.
+        """
+        Create an embedding vector for the given text.
         
-        Args:
-            text: Text to embed
-            
+        Parameters:
+            text (str): Text to encode into an embedding.
+        
         Returns:
-            Embedding vector as list of floats
+            List[float]: A list of floats representing the embedding vector for the input text.
         """
         response = await self.client.embeddings.create(
             model=settings.EMBEDDING_MODEL,
@@ -72,13 +79,14 @@ class LLMClient:
         return response.data[0].embedding
     
     async def embed_batch(self, texts: List[str]) -> List[List[float]]:
-        """Generate embeddings for multiple texts.
+        """
+        Generate embeddings for multiple input texts.
         
-        Args:
-            texts: List of texts to embed
-            
+        Parameters:
+            texts (List[str]): Texts to convert into embedding vectors.
+        
         Returns:
-            List of embedding vectors
+            List[List[float]]: Embedding vector for each input text, in the same order as `texts`.
         """
         response = await self.client.embeddings.create(
             model=settings.EMBEDDING_MODEL,

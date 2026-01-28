@@ -9,7 +9,14 @@ from app.main import app
 
 @pytest.fixture
 def client():
-    """Create test client with mocked vector store."""
+    """
+    Provide a TestClient with app.main.VectorStore patched to a mock.
+    
+    The patched VectorStore instance has `similarity_search` returning an empty list and
+    `get_stats` returning a dictionary with keys `total_documents`, `collection_name`,
+    and `embedding_model` (values: 0, "test", "test"). Yields a TestClient configured
+    with this mocked vector store.
+    """
     with patch('app.main.VectorStore') as mock_vs:
         mock_instance = Mock()
         mock_instance.similarity_search.return_value = []
