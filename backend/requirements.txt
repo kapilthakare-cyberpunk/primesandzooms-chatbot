@@ -1,0 +1,27 @@
+# FastAPI and server
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+sse-starlette==1.8.2
+
+# OpenAI and LangChain
+openai==1.12.0
+langchain==0.1.6
+langchain-openai==0.0.5
+langchain-community==0.0.17
+
+# Vector store
+chromadb==0.4.22
+
+# Web scraping
+beautifulsoup4==4.12.3
+requests==2.31.0
+lxml==5.1.0
+
+# Utilities
+python-dotenv==1.0.0
+pydantic==2.6.0
+pydantic-settings==2.1.0
+
+# Testing
+pytest==8.0.0
+httpx==0.26.0
