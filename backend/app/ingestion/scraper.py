@@ -12,7 +12,12 @@ class WebScraper:
     """Scrapes content from websites for RAG ingestion."""
     
     def __init__(self, base_domain: str = "primesandzooms.com"):
-        """Initialize scraper with base domain."""
+        """
+        Initialize the WebScraper and configure domain restriction and request headers.
+        
+        Parameters:
+            base_domain (str): Domain to constrain link extraction and crawling (e.g., "primesandzooms.com").
+        """
         self.base_domain = base_domain
         self.visited_urls: Set[str] = set()
         self.headers = {
@@ -20,14 +25,15 @@ class WebScraper:
         }
     
     async def scrape_urls(self, urls: List[str], depth: int = 1) -> List[Document]:
-        """Scrape content from URLs and optionally crawl linked pages.
+        """
+        Scrape seed URLs and optionally crawl same-domain links up to a given depth.
         
-        Args:
-            urls: List of seed URLs to scrape
-            depth: How many levels deep to crawl (1 = only seed URLs)
-            
+        Parameters:
+            urls (List[str]): Seed URLs to start scraping.
+            depth (int): Crawl depth; 1 means only the seed URLs.
+        
         Returns:
-            List of LangChain Document objects
+            List[Document]: Collected LangChain Document objects extracted from visited pages.
         """
         documents = []
         urls_to_process = [(url, 0) for url in urls]  # (url, current_depth)
@@ -58,13 +64,13 @@ class WebScraper:
         return documents
     
     async def _scrape_page(self, url: str) -> tuple[Document | None, List[str]]:
-        """Scrape a single page.
+        """
+        Scrapes a webpage and returns a LangChain Document of the cleaned page content along with same-domain links discovered on the page.
         
-        Args:
-            url: URL to scrape
-            
+        The function fetches the URL, parses and sanitizes the HTML, extracts a title and the main textual content, and constructs a Document with metadata (source, title, content_type). Pages with cleaned text shorter than 100 characters are skipped. On network or parsing errors the function returns (None, []).
+        
         Returns:
-            Tuple of (Document or None, list of discovered URLs)
+            tuple[Document | None, List[str]]: A tuple where the first element is a Document containing the cleaned page text and metadata, or `None` if the page was skipped or an error occurred; the second element is a list of same-domain URLs discovered on the page (empty if none or on error).
         """
         try:
             # Run sync request in thread pool
@@ -120,7 +126,15 @@ class WebScraper:
             return None, []
     
     def _extract_links(self, soup: BeautifulSoup, base_url: str) -> List[str]:
-        """Extract same-domain links from page."""
+        """
+        Extracts absolute, same-domain links suitable for crawling from an HTML document.
+        
+        Parameters:
+            base_url (str): Base URL used to resolve relative links into absolute URLs.
+        
+        Returns:
+            List[str]: Unique absolute URLs that belong to the scraper's base domain and appear to be HTML pages (common non-HTML extensions are excluded).
+        """
         links = []
         
         for a_tag in soup.find_all("a", href=True):

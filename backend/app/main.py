@@ -11,7 +11,14 @@ from app.config import settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan handler for startup/shutdown."""
+    """
+    Manage application startup and shutdown tasks for the FastAPI application.
+    
+    On startup, initializes a VectorStore and attaches it to app.state.vector_store. On shutdown, performs any final cleanup or shutdown actions.
+    
+    Parameters:
+        app (FastAPI): The FastAPI application instance whose state will receive the initialized vector store.
+    """
     # Startup: Initialize vector store
     app.state.vector_store = VectorStore()
     print(f"✅ Vector store initialized: {settings.COLLECTION_NAME}")
@@ -43,5 +50,12 @@ app.include_router(admin.router, prefix="/admin", tags=["Admin"])
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint."""
+    """
+    Return service health status for readiness checks.
+    
+    Returns:
+        dict: Mapping with keys:
+            - "status": `"healthy"` when the service is operational.
+            - "service": service identifier string `"primes-and-zooms-chatbot"`.
+    """
     return {"status": "healthy", "service": "primes-and-zooms-chatbot"}

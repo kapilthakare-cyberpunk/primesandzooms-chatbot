@@ -35,10 +35,13 @@ class VectorStore:
         )
     
     def add_documents(self, documents: List[Document]) -> None:
-        """Add documents to the vector store.
+        """
+        Insert a list of LangChain Documents into the ChromaDB collection with embeddings and content-derived IDs.
         
-        Args:
-            documents: List of LangChain Document objects
+        Each Document's page_content is embedded and stored as the document text, and its metadata is preserved. If `documents` is empty the method is a no-op. Generated entry IDs use the pattern `doc_<n>` where `<n>` is a deterministic integer derived from the document content (modulo 10**10).
+         
+        Parameters:
+            documents (List[Document]): LangChain Document objects whose `page_content` will be embedded and uploaded; their `metadata` will be saved alongside each document.
         """
         if not documents:
             return
@@ -62,14 +65,17 @@ class VectorStore:
         )
     
     def similarity_search(self, query: str, k: int = 5) -> List[Document]:
-        """Search for similar documents.
+        """
+        Finds the top-k documents most similar to a query using the configured embeddings and collection.
         
-        Args:
-            query: Search query string
-            k: Number of results to return
-            
+        Generates an embedding for `query`, retrieves up to `k` nearest matches from the collection, and returns them as LangChain Document objects whose `metadata` contains the stored metadata plus a `distance` key when available.
+        
+        Parameters:
+            query (str): The text query to search for.
+            k (int): Maximum number of matching documents to return.
+        
         Returns:
-            List of LangChain Document objects
+            List[Document]: List of matching LangChain Document objects with combined metadata and a `distance` entry when present.
         """
         # Generate query embedding
         query_embedding = self.embeddings.embed_query(query)
@@ -92,10 +98,14 @@ class VectorStore:
         return documents
     
     def get_stats(self) -> Dict[str, Any]:
-        """Get collection statistics.
+        """
+        Provide basic statistics about the configured ChromaDB collection.
         
         Returns:
-            Dict with collection stats
+            stats (Dict[str, Any]): Dictionary with collection statistics:
+                - total_documents (int): the collection's current document count.
+                - collection_name (str): configured collection name.
+                - embedding_model (str): configured embedding model name.
         """
         return {
             "total_documents": self.collection.count(),
@@ -104,7 +114,11 @@ class VectorStore:
         }
     
     def clear(self) -> None:
-        """Clear all documents from the collection."""
+        """
+        Remove all documents from the configured collection and reset it to an empty state.
+        
+        Deletes the collection identified by settings.COLLECTION_NAME and recreates it with HNSW cosine-space metadata so the collection is empty and ready for new inserts.
+        """
         # Delete and recreate collection
         self.client.delete_collection(settings.COLLECTION_NAME)
         self.collection = self.client.get_or_create_collection(

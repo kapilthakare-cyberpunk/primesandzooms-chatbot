@@ -36,13 +36,16 @@ Remember: You represent Primes and Zooms. Every interaction should leave custome
 
 
 def build_context_prompt(documents: List[Document]) -> str:
-    """Build context section from retrieved documents.
+    """
+    Builds a formatted context string from retrieved knowledge-base documents.
     
-    Args:
-        documents: List of retrieved Document objects
-        
+    Each document is rendered as a section with a header "[Source i]" optionally followed by the document title, a "URL: <source>" line (uses "Unknown" when source is missing), and the document's page_content. Sections are joined with " --- " (separated by blank lines). If `documents` is empty, returns "No relevant information found in the knowledge base."
+    
+    Parameters:
+        documents (List[Document]): Retrieved documents; metadata may include "source" and "title".
+    
     Returns:
-        Formatted context string
+        str: The combined context string as described above.
     """
     if not documents:
         return "No relevant information found in the knowledge base."

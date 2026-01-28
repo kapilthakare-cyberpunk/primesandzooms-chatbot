@@ -32,7 +32,21 @@ class StatsResponse(BaseModel):
 
 @router.post("/ingest", response_model=IngestResponse)
 async def ingest_content(request: Request, ingest_request: IngestRequest):
-    """Ingest content from URLs into the vector store."""
+    """
+    Ingest content from the provided URLs into the application's vector store.
+    
+    Scrapes the URLs from the ingestion request, splits the scraped documents into chunks, stores the chunks in the vector store found on request.app.state, and returns counts of documents and chunks processed.
+    
+    Parameters:
+        request (Request): FastAPI request whose app.state.vector_store will be used for storage.
+        ingest_request (IngestRequest): Payload containing `urls` to scrape and optional `crawl_depth`.
+    
+    Returns:
+        IngestResponse: Object with `status` set to "success", `documents_ingested` equal to the number of scraped documents, and `chunks_created` equal to the number of chunks added to the vector store.
+    
+    Raises:
+        HTTPException: With status_code 500 and the underlying error message if ingestion fails.
+    """
     try:
         vector_store = request.app.state.vector_store
         
@@ -61,7 +75,18 @@ async def ingest_content(request: Request, ingest_request: IngestRequest):
 
 @router.get("/stats", response_model=StatsResponse)
 async def get_stats(request: Request):
-    """Get vector store statistics."""
+    """
+    Retrieve statistics from the application's vector store.
+    
+    Returns:
+        StatsResponse: Contains:
+            - total_documents (int): Number of documents stored.
+            - collection_name (str): Name of the vector store collection.
+            - embedding_model (str): Name of the embedding model used.
+    
+    Raises:
+        HTTPException: With status_code 500 if retrieving stats fails; the exception detail contains the original error message.
+    """
     try:
         vector_store = request.app.state.vector_store
         stats = vector_store.get_stats()
