@@ -14,7 +14,38 @@ from app.config import Settings
 logger = logging.getLogger(__name__)
 
 
-class VectorStoreService:
+class NullVectorStore:
+    """No-op vector store used when embeddings aren't configured."""
+
+    def __init__(self, settings: Settings):
+        self.settings = settings
+
+    def add_documents(self, documents: list[Document]) -> int:
+        return len(documents or [])
+
+    def similarity_search(
+        self,
+        query: str,
+        top_k: int | None = None,
+        filter_dict: dict | None = None
+    ) -> list[Document]:
+        return []
+
+    def get_stats(self) -> dict[str, Any]:
+        return {
+            "total_documents": 0,
+            "total_chunks": 0,
+            "total_pages": 0,
+            "last_ingestion": None,
+            "collection_name": self.settings.chroma_collection_name,
+            "embedding_model": self.settings.embedding_model,
+        }
+
+    def clear_collection(self) -> None:
+        return None
+
+
+class VectorStore:
     """Service for vector store operations using ChromaDB."""
     
     def __init__(self, settings: Settings):
@@ -41,7 +72,7 @@ class VectorStoreService:
         
         logger.info(f"Vector store initialized at {settings.chroma_persist_dir}")
     
-    async def add_documents(self, documents: list[Document]) -> int:
+    def add_documents(self, documents: list[Document]) -> int:
         """Add documents to the vector store.
         
         Args:
@@ -64,7 +95,7 @@ class VectorStoreService:
         logger.info(f"Added {len(documents)} documents to vector store")
         return len(documents)
     
-    async def similarity_search(
+    def similarity_search(
         self,
         query: str,
         top_k: int | None = None,
@@ -101,7 +132,7 @@ class VectorStoreService:
         
         return filtered_results
     
-    async def get_stats(self) -> dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get vector store statistics.
         
         Returns:
@@ -128,13 +159,15 @@ class VectorStoreService:
                         latest_timestamp = ts
         
         return {
+            "total_documents": count,
             "total_chunks": count,
             "total_pages": len(source_urls),
             "last_ingestion": latest_timestamp,
             "collection_name": self.settings.chroma_collection_name,
+            "embedding_model": self.settings.embedding_model,
         }
     
-    async def clear_collection(self) -> None:
+    def clear_collection(self) -> None:
         """Clear all documents from the collection."""
         try:
             self.chroma_client.delete_collection(

@@ -1,5 +1,7 @@
 """FastAPI application entry point."""
 import logging
+import os
+import sys
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -8,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.routes import chat, admin
 from app.routes.telegram import router as telegram_router
+from app.services.vector_store import VectorStore, NullVectorStore
 
 # Configure logging
 logging.basicConfig(
@@ -27,6 +30,13 @@ async def lifespan(app: FastAPI):
     logger.info(f"LLM Provider: {settings.llm_provider}")
     logger.info(f"LLM Model: {settings.llm_model}")
     
+    # Initialize vector store (fall back to no-op if embeddings aren't configured)
+    if settings.openai_api_key:
+        app.state.vector_store = VectorStore(settings)
+    else:
+        logger.warning("OPENAI_API_KEY not set; using NullVectorStore")
+        app.state.vector_store = NullVectorStore(settings)
+
     # Log Telegram status
     if settings.TELEGRAM_BOT_TOKEN:
         logger.info("Telegram bot integration: ENABLED")
@@ -42,12 +52,14 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     """Create and configure FastAPI application."""
     settings = get_settings()
+    is_test = "pytest" in sys.modules or os.getenv("PYTEST_CURRENT_TEST")
+    lifespan_ctx = None if is_test else lifespan
     
     app = FastAPI(
         title=settings.app_name,
         description="RAG-powered chatbot for equipment rental inquiries",
         version="1.0.0",
-        lifespan=lifespan,
+        lifespan=lifespan_ctx,
     )
     
     # Configure CORS

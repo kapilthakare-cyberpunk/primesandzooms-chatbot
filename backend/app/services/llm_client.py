@@ -3,7 +3,7 @@
 from typing import List, Dict, AsyncGenerator
 from openai import AsyncOpenAI
 
-from app.config import settings
+from app.config import get_settings
 
 
 class LLMClient:
@@ -11,10 +11,11 @@ class LLMClient:
     
     def __init__(self):
         """Initialize OpenAI client."""
-        self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-        self.model = settings.LLM_MODEL
-        self.temperature = settings.LLM_TEMPERATURE
-        self.max_tokens = settings.LLM_MAX_TOKENS
+        settings = get_settings()
+        self.client = AsyncOpenAI(api_key=settings.openai_api_key)
+        self.model = settings.llm_model
+        self.temperature = settings.llm_temperature
+        self.max_tokens = settings.llm_max_tokens
     
     async def chat(self, messages: List[Dict[str, str]]) -> str:
         """Send a chat completion request.
@@ -64,8 +65,9 @@ class LLMClient:
         Returns:
             Embedding vector as list of floats
         """
+        settings = get_settings()
         response = await self.client.embeddings.create(
-            model=settings.EMBEDDING_MODEL,
+            model=settings.embedding_model,
             input=text
         )
         
@@ -80,8 +82,9 @@ class LLMClient:
         Returns:
             List of embedding vectors
         """
+        settings = get_settings()
         response = await self.client.embeddings.create(
-            model=settings.EMBEDDING_MODEL,
+            model=settings.embedding_model,
             input=texts
         )
         

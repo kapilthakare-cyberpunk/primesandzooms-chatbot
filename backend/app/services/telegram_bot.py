@@ -8,6 +8,7 @@ import httpx
 from typing import Optional
 
 from app.config import get_settings
+from app.services.vector_store import VectorStore
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,9 @@ def get_rag_engine():
     global _rag_engine
     if _rag_engine is None:
         from app.services.rag_engine import RAGEngine
-        _rag_engine = RAGEngine(get_settings())
+        settings = get_settings()
+        vector_store = VectorStore(settings)
+        _rag_engine = RAGEngine(vector_store)
     return _rag_engine
 
 
@@ -230,7 +233,7 @@ _Visit our website for the most up-to-date information!_"""
             response = await rag.query(text)
             
             # Format for Telegram
-            answer = response.get("answer", "I'm sorry, I couldn't find an answer to that question.")
+            answer = response.get("response", "I'm sorry, I couldn't find an answer to that question.")
             
             # Add helpful footer for low-confidence responses
             if len(response.get("sources", [])) == 0:

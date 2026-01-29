@@ -1,11 +1,11 @@
 """RAG (Retrieval-Augmented Generation) engine."""
 
-from typing import List, Dict, Any, AsyncGenerator
+from typing import Dict, Any, AsyncGenerator
 
 from app.services.vector_store import VectorStore
 from app.services.llm_client import LLMClient
 from app.prompts.templates import SYSTEM_PROMPT, build_context_prompt
-from app.config import settings
+from app.config import get_settings
 
 
 class RAGEngine:
@@ -15,6 +15,7 @@ class RAGEngine:
         """Initialize RAG engine with vector store."""
         self.vector_store = vector_store
         self.llm_client = LLMClient()
+        self.settings = get_settings()
     
     async def query(self, user_message: str) -> Dict[str, Any]:
         """Process a user query through the RAG pipeline.
@@ -28,7 +29,7 @@ class RAGEngine:
         # Step 1: Retrieve relevant documents
         retrieved_docs = self.vector_store.similarity_search(
             query=user_message,
-            k=settings.RETRIEVAL_TOP_K
+            top_k=self.settings.top_k_results
         )
         
         # Step 2: Build context from retrieved documents
@@ -60,7 +61,7 @@ class RAGEngine:
         # Step 1: Retrieve relevant documents
         retrieved_docs = self.vector_store.similarity_search(
             query=user_message,
-            k=settings.RETRIEVAL_TOP_K
+            top_k=self.settings.top_k_results
         )
         
         # Step 2: Build context from retrieved documents

@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     debug: bool = False
     
     # API Keys
-    openai_api_key: str
+    openai_api_key: str = ""
     groq_api_key: str = ""  # Optional, for Groq LLM
     
     # Telegram Bot

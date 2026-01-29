@@ -4,7 +4,7 @@ from typing import List
 from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-from app.config import settings
+from app.config import get_settings
 
 
 class TextChunker:
@@ -21,8 +21,9 @@ class TextChunker:
             chunk_size: Maximum characters per chunk (default from settings)
             chunk_overlap: Overlap between chunks for context continuity
         """
-        self.chunk_size = chunk_size or settings.CHUNK_SIZE
-        self.chunk_overlap = chunk_overlap or settings.CHUNK_OVERLAP
+        settings = get_settings()
+        self.chunk_size = chunk_size or settings.chunk_size
+        self.chunk_overlap = chunk_overlap or settings.chunk_overlap
         
         self.splitter = RecursiveCharacterTextSplitter(
             chunk_size=self.chunk_size,
